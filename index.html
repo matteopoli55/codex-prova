@@ -1,1 +1,167 @@
-<html><head><title>La Mia Impresa</title></head><body><h1>Benvenuto nel sito della mia impresa!</h1><p>Offriamo servizi professionali di alta qualit�. Contattaci per maggiori informazioni.</p></body></html> 
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>La Mia Impresa – Ristoranti</title>
+  <style>
+    :root { --bg:#f7f7f8; --card:#ffffff; --line:#e6e6e9; }
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:#111}
+    .app{display:grid;grid-template-columns:260px 1fr 260px;min-height:100dvh}
+    aside, main{padding:16px}
+    aside{background:var(--card);border-right:1px solid var(--line)}
+    aside.right{border-right:0;border-left:1px solid var(--line)}
+    h1{font-size:20px;margin:0 0 12px}
+    .search{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+    .menu{margin-top:12px;display:grid;gap:8px}
+    .menu button{padding:10px 12px;border:1px solid var(--line);background:#fff;border-radius:10px;cursor:pointer;text-align:left}
+    .menu button.active{outline:2px solid #111}
+    .badge{font-size:12px;opacity:.6}
+    main header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{border:1px solid var(--line);padding:8px 10px;border-radius:999px;background:#fff;cursor:pointer}
+    .grid{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+    .card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+    .card .info{padding:10px 12px}
+    .uploader{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;background:#fff}
+    .uploader input{display:none}
+    .uploader label{cursor:pointer}
+    footer{padding:12px;text-align:center;font-size:12px;color:#666}
+    @media (max-width: 980px){ .app{grid-template-columns:1fr} aside.right{display:none} }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- SINISTRA: categorie/ristoranti -->
+    <aside>
+      <h1>Ristoranti</h1>
+      <input class="search" id="q" placeholder="Cerca ristorante…" />
+      <div class="menu" id="restaurants"></div>
+    </aside>
+
+    <!-- CENTRO: galleria -->
+    <main>
+      <header>
+        <h1 style="margin-right:auto">Galleria piatti</h1>
+        <div class="filters">
+          <button class="chip" data-filter="all">Tutti</button>
+          <button class="chip" data-filter="pasta">Pasta</button>
+          <button class="chip" data-filter="carne">Carne</button>
+          <button class="chip" data-filter="pesce">Pesce</button>
+          <button class="chip" data-filter="veg">Veg</button>
+        </div>
+      </header>
+
+      <!-- uploader per aggiungere foto -->
+      <section class="uploader" id="drop">
+        <p><strong>Aggiungi foto ristorante</strong></p>
+        <p class="badge">Trascina qui oppure <label for="file">carica</label></p>
+        <input type="file" id="file" accept="image/*" multiple />
+      </section>
+
+      <section class="grid" id="gallery"></section>
+      <footer>© La Mia Impresa</footer>
+    </main>
+
+    <!-- DESTRA: opzioni (tendina destra) -->
+    <aside class="right">
+      <h1>Opzioni</h1>
+      <div class="menu">
+        <button data-opt="consegna">Impostazioni consegna</button>
+        <button data-opt="etichette">Etichette</button>
+        <button data-opt="listini">Listini</button>
+        <button data-opt="promo">Promozioni</button>
+      </div>
+      <p class="badge">Seleziona un ristorante a sinistra per attivare le opzioni.</p>
+    </aside>
+  </div>
+
+  <script>
+    // Dati demo
+    const DATA = [
+      { id:"rist1", name:"Trastevere Pasta Bar", tags:["pasta"], img:"https://picsum.photos/seed/pasta/600/400" },
+      { id:"rist2", name:"Osteria del Mare", tags:["pesce"], img:"https://picsum.photos/seed/fish/600/400" },
+      { id:"rist3", name:"Bisteccheria Fiorentina", tags:["carne"], img:"https://picsum.photos/seed/steak/600/400" },
+      { id:"rist4", name:"Veg & Go", tags:["veg"], img:"https://picsum.photos/seed/veg/600/400" }
+    ];
+
+    const restaurantsEl = document.getElementById('restaurants');
+    const galleryEl = document.getElementById('gallery');
+    const inputEl = document.getElementById('file');
+    const dropEl = document.getElementById('drop');
+
+    function renderRestaurants(list){
+      restaurantsEl.innerHTML = "";
+      list.forEach((r,i)=>{
+        const b = document.createElement('button');
+        b.textContent = r.name;
+        b.dataset.id = r.id;
+        if(i===0) b.classList.add('active');
+        b.onclick = () => {
+          document.querySelectorAll('#restaurants button').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active');
+          renderGallery(r.id);
+        };
+        restaurantsEl.appendChild(b);
+      });
+    }
+
+    function renderGallery(ristId, filter="all"){
+      const items = DATA.filter(d => d.id===ristId || ristId==="all")
+                        .filter(d => filter==="all" || d.tags.includes(filter));
+      galleryEl.innerHTML = items.map(d => `
+        <article class="card">
+          <img src="${d.img}" alt="${d.name}">
+          <div class="info">
+            <strong>${d.name}</strong><br>
+            <span class="badge">${d.tags.join(", ")}</span>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    // ricerca ristoranti
+    document.getElementById('q').addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase();
+      renderRestaurants(DATA.filter(r => r.name.toLowerCase().includes(q)));
+    });
+
+    // filtri
+    document.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active');
+        const activeR = document.querySelector('#restaurants button.active')?.dataset.id || DATA[0].id;
+        renderGallery(activeR, chip.dataset.filter);
+      });
+    });
+
+    // upload drag&drop
+    ;['dragenter','dragover'].forEach(evt=>{
+      dropEl.addEventListener(evt, e=>{ e.preventDefault(); dropEl.style.background='#fdfdfd'; });
+    });
+    ;['dragleave','drop'].forEach(evt=>{
+      dropEl.addEventListener(evt, e=>{ e.preventDefault(); dropEl.style.background='#fff'; });
+    });
+    dropEl.addEventListener('drop', e=>{
+      const files = e.dataTransfer.files;
+      handleFiles(files);
+    });
+    inputEl.addEventListener('change', ()=>handleFiles(inputEl.files));
+
+    function handleFiles(files){
+      const activeR = document.querySelector('#restaurants button.active')?.dataset.id || DATA[0].id;
+      Array.from(files).forEach(file=>{
+        const url = URL.createObjectURL(file);
+        DATA.push({ id: activeR, name: file.name.replace(/\.[^/.]+$/, ""), tags:["pasta"], img:url });
+      });
+      renderGallery(activeR);
+    }
+
+    // bootstrap
+    renderRestaurants(DATA);
+    renderGallery(DATA[0].id);
+  </script>
+</body>
+</html>
