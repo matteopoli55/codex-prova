@@ -1,0 +1,9 @@
+{
+  "name": "codex-prova",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "echo \"Serve index.html\"",
+    "test": "echo \"Nessun test definito\" && exit 0"
+  }
+}
